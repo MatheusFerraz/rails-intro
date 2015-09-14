@@ -9,30 +9,43 @@ class MoviesController < ApplicationController
   def index
 	@all_ratings = Movie.pluck(:rating).uniq
 	@selected_ratings = []
+	flash.keep
 
 	unless params[:ratings].nil?
+		session[:ratings] = params[:ratings]
 		keys = params[:ratings].keys
 		keys.each do |element|
 			@selected_ratings << element.to_s
 		end
 	else
-		@all_ratings.each do |specific_rating|
-			@selected_ratings << specific_rating
+		if session[:ratings].nil?
+			@all_ratings.each do |specific_rating|
+				@selected_ratings << specific_rating
+			end
+		else
+			keys = session[:ratings].keys
+			keys.each do |element|
+				@selected_ratings << element.to_s
+			end
 		end
 	end
 
 	if params[:sort].nil?
-		@movies = Movie.where(rating: @selected_ratings)
+		if session[:header].nil?
+			@movies = Movie.where(rating: @selected_ratings)
+		else
+			redirect_to movies_path(:sort => session[:header], :rating => @selected_ratings)
+		end
 	else
 		sort_parameter = params[:sort]
 		if sort_parameter == "title"
-			@movies = Movie.where(rating: @selected_ratings)
+			@movies = Movie.where(rating: @selected_ratings).sort_by(&:title)
 			@title_header = "hilite"
-		elsif sort_parameter == "release_date"
-			@movies = Movie.where(rating: @selected_ratings)			
-			@release_header = "hilite"
+			session[:header] = "title"
 		else
-			@movies = Movie.where(rating: @selected_ratings)
+			@movies = Movie.where(rating: @selected_ratings).sort_by(&:release_date)			
+			@release_header = "hilite"
+			session[:header] = "release"
 		end
 	end
 	@movies
