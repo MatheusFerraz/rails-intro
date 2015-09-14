@@ -17,7 +17,7 @@ class MoviesController < ApplicationController
 		end
 	else
 		@all_ratings.each do |specific_rating|
-			@selected_ratings << specific_rating
+			@selected_ratings << specific_rating|
 		end
 	end
 
